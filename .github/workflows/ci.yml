@@ -30,7 +30,7 @@ jobs:
         run: python -m ml.train --out-dir artifacts --test-size 0.5
 
       - name: Run tests
-        run: pytest -q
+        run: make test
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
