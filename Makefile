@@ -1,6 +1,6 @@
 PY=python
 PORT?=8080
-IMAGE?=ghcr.io/israt-urme/virtual-diabetes-triage:dev
+IMAGE?=ghcr.io/mostafiz93/virtual-diabetes-triage:v0.1
 
 .PHONY: venv install train serve test docker-build docker-run fmt
 
