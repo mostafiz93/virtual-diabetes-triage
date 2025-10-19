@@ -1,0 +1,7 @@
+artifacts/
+__pycache__/
+*.pyc
+.env
+.venv/
+dist/
+*.egg-info/
