@@ -1,8 +1,10 @@
 import os
+
+os.environ["MODEL_DIR"] = "artifacts"
+
 from fastapi.testclient import TestClient
 from app.main import app
 
-os.environ["MODEL_DIR"] = "artifacts"
 client = TestClient(app)
 
 def test_health_ok():
