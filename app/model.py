@@ -10,6 +10,7 @@ MODEL_DIR = Path(os.getenv("MODEL_DIR", "/opt/model"))
 MODEL_PATH = MODEL_DIR / "model.joblib"
 META_PATH = MODEL_DIR / "model_meta.json"
 
+
 class ModelService:
     def __init__(self):
         if not MODEL_PATH.exists():
