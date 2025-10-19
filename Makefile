@@ -14,7 +14,7 @@ train:
 	MODEL_VERSION=dev $(PY) -m ml.train --out-dir artifacts
 
 serve:
-	uvicorn app.main:app --host 0.0.0.0 --port $(PORT)
+	MODEL_DIR=artifacts uvicorn app.main:app --host 0.0.0.0 --port $(PORT)
 
 test:
 	pytest -q
