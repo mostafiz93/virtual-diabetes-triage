@@ -4,6 +4,7 @@ import joblib
 import subprocess
 import sys
 
+
 def test_training_script_runs(tmp_path: Path):
     out = tmp_path / "artifacts"
     subprocess.check_call([sys.executable, "-m", "ml.train", "--out-dir", str(out)])

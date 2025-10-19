@@ -3,7 +3,6 @@ import json
 import os
 from pathlib import Path
 import joblib
-import numpy as np
 from sklearn.datasets import load_diabetes
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
@@ -15,7 +14,8 @@ from datetime import datetime
 
 from ml.utils import Metrics, save_json
 
-FEATURES = ["age","sex","bmi","bp","s1","s2","s3","s4","s5","s6"]
+FEATURES = ["age", "sex", "bmi", "bp", "s1", "s2", "s3", "s4", "s5", "s6"]
+
 
 def get_model():
     return Pipeline([
@@ -23,8 +23,8 @@ def get_model():
         ("est", LinearRegression())
     ])
 
+
 def main(args):
-    rng = np.random.RandomState(args.seed)
     Xy = load_diabetes(as_frame=True)
     X = Xy.frame.drop(columns=["target"])
     y = Xy.frame["target"]
@@ -61,6 +61,7 @@ def main(args):
     print("=== METRICS ===")
     print(json.dumps(metrics))
     print("=== /METRICS ===")
+
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
