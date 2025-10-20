@@ -43,7 +43,7 @@ jobs:
       - name: Show metrics
         id: metrics
         run: |
-          echo "METRICS=$(cat artifacts/metrics.json)" >> $GITHUB_OUTPUT
+          echo "METRICS=$(jq -c . artifacts/metrics.json)" >> $GITHUB_OUTPUT
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
