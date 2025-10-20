@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set version (linear for v0.1)
+      - name: Set version from tag
         id: meta
         run: |
           TAG="${GITHUB_REF_NAME}"
@@ -35,7 +35,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Train full (linear v0.1)
+      - name: Train model (version-aware)
         env:
           MODEL_VERSION: ${{ steps.meta.outputs.version }}
         run: python -m ml.train --out-dir artifacts --test-size 0.2
@@ -68,12 +68,17 @@ jobs:
       - name: Compose release body
         id: body
         run: |
+          MODEL_TYPE=$(jq -r '.model_type' artifacts/model_meta.json)
           echo "## ${GITHUB_REF_NAME}" > RELEASE_BODY.md
           echo "" >> RELEASE_BODY.md
-          echo "Model: \`linear (StandardScaler + LinearRegression)\`" >> RELEASE_BODY.md
+          echo "**Model:** \`$MODEL_TYPE\`" >> RELEASE_BODY.md
           echo "" >> RELEASE_BODY.md
-          echo "**Metrics (on held-out split)**" >> RELEASE_BODY.md
-          jq -r '. as $m | "| Metric | Value |\n|---|---|\n| RMSE | \($m.rmse) |"' artifacts/metrics.json >> RELEASE_BODY.md
+          echo "**Metrics (held-out split, test_size=0.2, seed=42)**" >> RELEASE_BODY.md
+          echo "" >> RELEASE_BODY.md
+          # Build metrics table dynamically
+          echo "| Metric | Value |" >> RELEASE_BODY.md
+          echo "|--------|-------|" >> RELEASE_BODY.md
+          jq -r 'to_entries[] | "| \(.key) | \(.value) |"' artifacts/metrics.json >> RELEASE_BODY.md
           echo "" >> RELEASE_BODY.md
           echo "_Image_: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}\`" >> RELEASE_BODY.md
 

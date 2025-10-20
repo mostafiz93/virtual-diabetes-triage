@@ -3,9 +3,11 @@ import json
 import os
 from pathlib import Path
 import joblib
+import numpy as np
 from sklearn.datasets import load_diabetes
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error, precision_score, recall_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
@@ -17,11 +19,29 @@ from ml.utils import Metrics, save_json
 FEATURES = ["age", "sex", "bmi", "bp", "s1", "s2", "s3", "s4", "s5", "s6"]
 
 
-def get_model():
-    return Pipeline([
-        ("scale", StandardScaler()),
-        ("est", LinearRegression())
-    ])
+def get_model(model_version="v0.1"):
+    """
+    Returns model pipeline based on version.
+    v0.1: StandardScaler + LinearRegression (baseline)
+    v0.2: StandardScaler + RandomForestRegressor (improved)
+    """
+    if model_version.startswith("v0.2"):
+        return Pipeline([
+            ("scale", StandardScaler()),
+            ("est", RandomForestRegressor(
+                n_estimators=100,
+                max_depth=10,
+                min_samples_split=5,
+                random_state=42,
+                n_jobs=-1
+            ))
+        ])
+    else:
+        # v0.1 baseline
+        return Pipeline([
+            ("scale", StandardScaler()),
+            ("est", LinearRegression())
+        ])
 
 
 def main(args):
@@ -33,23 +53,46 @@ def main(args):
         X, y, test_size=args.test_size, random_state=args.seed
     )
 
-    pipe = get_model()
+    model_version = os.getenv("MODEL_VERSION", "dev")
+    pipe = get_model(model_version)
     pipe.fit(X_tr, y_tr)
 
     y_pred = pipe.predict(X_te)
     rmse = mean_squared_error(y_te, y_pred, squared=False)
+
+    # High-risk classification (v0.2+): threshold at 75th percentile
+    precision, recall, threshold = None, None, None
+    if model_version.startswith("v0.2"):
+        threshold = np.percentile(y_tr, 75)
+        y_true_class = (y_te >= threshold).astype(int)
+        y_pred_class = (y_pred >= threshold).astype(int)
+        
+        if y_pred_class.sum() > 0:  # avoid division by zero
+            precision = precision_score(y_true_class, y_pred_class, zero_division=0)
+            recall = recall_score(y_true_class, y_pred_class, zero_division=0)
 
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
     joblib.dump(pipe, out_dir / "model.joblib")
 
-    metrics = Metrics(rmse=rmse).to_dict()
+    metrics = Metrics(
+        rmse=rmse,
+        precision=precision,
+        recall=recall,
+        high_risk_threshold=threshold
+    ).to_dict()
     save_json(metrics, out_dir / "metrics.json")
 
+    # Determine model type
+    if model_version.startswith("v0.2"):
+        model_type = "random_forest"
+    else:
+        model_type = "linear"
+
     meta = {
-        "model_version": os.getenv("MODEL_VERSION", "dev"),
-        "model_type": "linear",
+        "model_version": model_version,
+        "model_type": model_type,
         "sklearn_version": sklearn.__version__,
         "trained_at": datetime.utcnow().isoformat() + "Z",
         "seed": args.seed,
@@ -59,7 +102,7 @@ def main(args):
     save_json(meta, out_dir / "model_meta.json")
 
     print("=== METRICS ===")
-    print(json.dumps(metrics))
+    print(json.dumps(metrics, indent=2))
     print("=== /METRICS ===")
 
 
