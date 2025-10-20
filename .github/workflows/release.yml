@@ -3,11 +3,11 @@ name: Release
 on:
   push:
     tags:
-      - "v*"
+      - 'v*'
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: israt-urme/virtual-diabetes-triage
+  IMAGE_NAME: mostafiz93/virtual-diabetes-triage
 
 jobs:
   release:

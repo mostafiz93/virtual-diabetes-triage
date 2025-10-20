@@ -20,7 +20,7 @@ test:
 	PYTHONPATH=. pytest -q
 
 docker-build:
-	docker build -t $(IMAGE) .
+	DOCKER_BUILDKIT=0 docker build -t $(IMAGE) .
 
 docker-run:
 	docker run --rm -p $(PORT):8080 $(IMAGE)
