@@ -66,7 +66,7 @@ def main(args):
         threshold = np.percentile(y_tr, 75)
         y_true_class = (y_te >= threshold).astype(int)
         y_pred_class = (y_pred >= threshold).astype(int)
-        
+
         if y_pred_class.sum() > 0:  # avoid division by zero
             precision = precision_score(y_true_class, y_pred_class, zero_division=0)
             recall = recall_score(y_true_class, y_pred_class, zero_division=0)
